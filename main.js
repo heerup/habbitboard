@@ -236,7 +236,11 @@
     weeksEl.innerHTML = '';
     
     // Add month label for current month
-    weeksEl.appendChild(createMonthLabel(currentMonday));
+    const monthLabel = document.createElement('div');
+    monthLabel.className = 'month-label';
+    monthLabel.textContent = 'September 2025'; // Fixed for now
+    weeksEl.appendChild(monthLabel);
+    
     weeksEl.appendChild(renderWeekRow(currentMonday, { markCurrent: true }));
     oldestMonday = currentMonday;
 
