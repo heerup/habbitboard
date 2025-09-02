@@ -95,10 +95,32 @@
     return `${year} · W${String(week).padStart(2, '0')}`;
   }
 
+  // Helper function to get month name
+  function getMonthName(date) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[date.getMonth()];
+  }
+
+  // Helper function to get month key for comparison
+  function getMonthKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  // Helper function to determine if month is odd/even for coloring
+  function getMonthColorClass(date) {
+    const monthNum = date.getFullYear() * 12 + date.getMonth();
+    return monthNum % 2 === 0 ? 'month-even' : 'month-odd';
+  }
+
   // ---- Rendering ----
   function renderWeekRow(monday, options = {}) {
     const row = document.createElement('div');
     row.className = 'row';
+    
+    // Add month-based coloring
+    const monthColorClass = getMonthColorClass(monday);
+    row.classList.add(monthColorClass);
 
     const label = document.createElement('div');
     label.className = 'week-label';
@@ -134,11 +156,29 @@
     return row;
   }
 
+  // Function to create month label element
+  function createMonthLabel(date) {
+    const monthLabel = document.createElement('div');
+    monthLabel.className = 'month-label';
+    monthLabel.textContent = `${getMonthName(date)} ${date.getFullYear()}`;
+    return monthLabel;
+  }
+
   function appendOlderWeeks(fromMonday, count) {
     // fromMonday should be the oldest currently shown; we append older (earlier) ones
     let start = fromMonday;
+    let currentMonth = getMonthKey(start);
+    
     for (let i = 1; i <= count; i++) {
       const weekStart = addWeeks(start, -i);
+      const weekMonth = getMonthKey(weekStart);
+      
+      // Check if we've entered a new month and add month label
+      if (weekMonth !== currentMonth) {
+        weeksEl.appendChild(createMonthLabel(weekStart));
+        currentMonth = weekMonth;
+      }
+      
       weeksEl.appendChild(renderWeekRow(weekStart));
       oldestMonday = weekStart;
     }
@@ -194,6 +234,9 @@
     // Weeks
     // Initial: show current week at the top. Older weeks load as you scroll down.
     weeksEl.innerHTML = '';
+    
+    // Add month label for current month
+    weeksEl.appendChild(createMonthLabel(currentMonday));
     weeksEl.appendChild(renderWeekRow(currentMonday, { markCurrent: true }));
     oldestMonday = currentMonday;
 
