@@ -165,7 +165,7 @@
   }
 
   function appendOlderWeeks(fromMonday, count) {
-    // fromMonday should be the oldest currently shown; we append older (earlier) ones
+    // fromMonday should be the oldest currently shown; we prepend even older (earlier) ones at the top
     let start = fromMonday;
     let currentMonth = getMonthKey(start);
     
@@ -173,13 +173,17 @@
       const weekStart = addWeeks(start, -i);
       const weekMonth = getMonthKey(weekStart);
       
-      // Check if we've entered a new month and add month label
+      // Check if we've entered a new month and add month label at the top
       if (weekMonth !== currentMonth) {
-        weeksEl.appendChild(createMonthLabel(weekStart));
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'month-label';
+        monthLabel.textContent = getMonthName(weekStart) + ' ' + weekStart.getFullYear();
+        weeksEl.insertBefore(monthLabel, weeksEl.firstChild);
         currentMonth = weekMonth;
       }
       
-      weeksEl.appendChild(renderWeekRow(weekStart));
+      // Insert week at the top
+      weeksEl.insertBefore(renderWeekRow(weekStart), weeksEl.firstChild);
       oldestMonday = weekStart;
     }
   }
@@ -232,20 +236,48 @@
     // Tabs
     renderTabs();
     // Weeks
-    // Initial: show current week at the top. Older weeks load as you scroll down.
+    // New approach: show older weeks at top, current week at bottom (calendar-like)
     weeksEl.innerHTML = '';
     
-    // Add month label for current month
-    const monthLabel = document.createElement('div');
-    monthLabel.className = 'month-label';
-    monthLabel.textContent = 'September 2025'; // Fixed for now
-    weeksEl.appendChild(monthLabel);
+    // Build weeks in reverse chronological order
+    // Start with some older weeks
+    const numOlderWeeks = 10;
+    const weekElements = [];
     
+    // Create older weeks first (they'll be at the top)
+    for (let i = numOlderWeeks; i >= 1; i--) {
+      const weekStart = addWeeks(currentMonday, -i);
+      
+      // Check if we need a month label
+      const prevWeekStart = addWeeks(currentMonday, -(i-1));
+      const currentMonth = getMonthKey(weekStart);
+      const nextMonth = getMonthKey(prevWeekStart);
+      
+      if (currentMonth !== nextMonth) {
+        const monthLabel = document.createElement('div');
+        monthLabel.className = 'month-label';
+        monthLabel.textContent = getMonthName(weekStart) + ' ' + weekStart.getFullYear();
+        weeksEl.appendChild(monthLabel);
+      }
+      
+      weeksEl.appendChild(renderWeekRow(weekStart));
+      oldestMonday = weekStart;
+    }
+    
+    // Add month label for current month if needed
+    const currentMonth = getMonthKey(currentMonday);
+    const lastOlderWeek = addWeeks(currentMonday, -1);
+    const lastMonth = getMonthKey(lastOlderWeek);
+    
+    if (currentMonth !== lastMonth) {
+      const monthLabel = document.createElement('div');
+      monthLabel.className = 'month-label';
+      monthLabel.textContent = getMonthName(currentMonday) + ' ' + currentMonday.getFullYear();
+      weeksEl.appendChild(monthLabel);
+    }
+    
+    // Add current week at the bottom
     weeksEl.appendChild(renderWeekRow(currentMonday, { markCurrent: true }));
-    oldestMonday = currentMonday;
-
-    // Preload a few older weeks for context
-    appendOlderWeeks(oldestMonday, 10);
   }
 
   // Rehydrate state on visibility change in case of multi-tab modifications
@@ -266,13 +298,13 @@
   // Kick off
   // Bind UI events once
   weeksEl.addEventListener('scroll', () => {
-    const threshold = 200; // px from bottom
-    if (weeksEl.scrollTop + weeksEl.clientHeight >= weeksEl.scrollHeight - threshold) {
+    const threshold = 200; // px from top
+    if (weeksEl.scrollTop <= threshold) {
       appendOlderWeeks(oldestMonday, 12);
     }
   });
   jumpBtn.addEventListener('click', () => {
-    weeksEl.scrollTo({ top: 0, behavior: 'smooth' });
+    weeksEl.scrollTo({ top: weeksEl.scrollHeight, behavior: 'smooth' });
   });
   addTabBtn.addEventListener('click', addTab);
 
