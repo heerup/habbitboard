@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5f5f5" />
+    <title>Habitboard</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Habitboard</h1>
+      <button id="jump-today" class="pill">Today</button>
+    </header>
+
+    <main id="app">
+      <div class="tabs">
+        <div id="tabs" class="tabs-list" role="tablist" aria-label="Habit Tabs"></div>
+        <button id="add-tab" class="pill small" title="Add tab" aria-label="Add tab">+</button>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <div class="week-col">Week</div>
+        <div class="days-col">
+          <div class="day-head">M</div>
+          <div class="day-head">T</div>
+          <div class="day-head">W</div>
+          <div class="day-head">T</div>
+          <div class="day-head">F</div>
+          <div class="day-head">S</div>
+          <div class="day-head">S</div>
+        </div>
+      </div>
+      <section id="weeks" class="weeks" aria-live="polite"></section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Data saves to this device.</span>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+    </script>
+  </body>
+  </html>
